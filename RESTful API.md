@@ -1,6 +1,8 @@
 # RESTful API 설계 가이드: 제대로 이해하고 잘 만들자!
 
-RESTful API는 현대 웹 및 모바일 애플리케이션의 핵심 통신 방식입니다. 많은 개발자들이 API를 “그냥 HTTP로 만들어진 것”이라고 생각하지만, REST의 개념과 원칙을 제대로 이해하고 설계하면, 시스템의 확장성, 유지보수성, 보안성이 크게 향상됩니다. 이 글에서는 RESTful API의 기본 개념부터 설계 방법까지 자세히 다루어, 지금까지 잘못 만든 API를 개선하고자 하는 분들께 도움이 되고자 합니다.
+RESTful API는 HTTP 기반의 웹 서비스 설계 패러다임으로, 자원을 중심으로 데이터를 주고받는 현대 웹 및 모바일 애플리케이션의 핵심 통신 방식입니다.  
+많은 개발자들이 API를 “그냥 HTTP로 만들어진 것”이라고 생각하지만, REST의 개념과 원칙을 제대로 이해하고 설계하면, 시스템의 확장성, 유지보수성, 보안성이 크게 향상됩니다.  
+이 글에서는 RESTful API의 기본 개념부터 설계 방법까지 자세히 다루어, 지금까지 잘못 만든 API를 개선하고자 하는 분들께 도움이 되고자 합니다.
 
 ---
 
@@ -8,8 +10,9 @@ RESTful API는 현대 웹 및 모바일 애플리케이션의 핵심 통신 방�
 
 ### 1. 개념 정의
 
-- **REST(Representational State Transfer)**는 웹의 아키텍처 스타일 중 하나로, 자원을 중심으로 상태를 표현하고 전이시키는 방법입니다.
-- 자원(Resource) : API가 다루는 대상(예: 사용자, 상품, 주문 등)은 고유한 URI를 통해 식별됩니다.
+- **REST(Representational State Transfer)**  
+  REST는 웹의 아키텍처 스타일 중 하나로, HTTP의 기본 메커니즘(메서드, 상태 코드, 헤더 등)을 활용하여 자원을 표현(Representation)하고 상태를 전이(State Transfer)하는 방법입니다.
+- 자원(Resource) : API가 다루는 대상, 데이터의 단위(예: 사용자, 상품, 주문 등)는 고유한 URI를 통해 식별됩니다.
 - 표현(Representation) : 자원의 상태는 JSON, XML 등으로 표현됩니다.
 
 ### 2. REST의 6가지 제약 조건
@@ -21,12 +24,17 @@ RESTful API를 설계할 때 지켜야 하는 핵심 제약 조건은 다음과 
 2. 무상태(Stateless) :  
   **각 요청은 독립적**이어야 하며, 서버는 이전 요청의 상태를 저장하지 않습니다. 필요한 모든 정보는 요청에 포함되어야 합니다.
 3. 캐시 가능(Cacheable) :   
-  응답은 캐시 가능해야 하며, **적절한 캐시 헤더를 통해 성능을 최적화**할 수 있습니다.
+  응답은 캐시 가능해야 하며, **적절한 캐시 헤더(Cache-Control, Expires 등)를 통해 성능을 최적화**할 수 있습니다.
 4. 일관된 인터페이스(Uniform Interface) :  
-  API의 모든 상호작용은 일관된 방식으로 진행되어야 합니다. 이를 위해 URI는 명사 형태, HTTP 메서드(GET, POST, PUT, DELETE)를 사용합니다.
+  - API의 모든 상호작용은 일관된 방식으로 진행되어야 합니다.
+    - 상호작용 : 자원 식별, 표현, 자기 기술(Self-descriptive messages), 하이퍼미디어(HATEOAS)
+  - HTTP 메서드 : GET (조회), POST (생성), PUT/PATCH (수정), DELETE (삭제)
+  - URI 설계 : 자원을 명확하게 나타내는 경로를 사용합니다.
 5. 계층화 시스템(Layered System) :  
-  클라이언트는 서버의 내부 구현(프록시, 게이트웨이 등)을 알 필요 없이 API와 상호작용할 수 있어야 합니다.
-6. 코드 온디맨드(Code on Demand) – 선택 사항 :  
+  - 클라이언트는 서버의 내부 구현을 알 필요 없이 서버와 직접 상호작용하지 않을 수 있습니다.
+  - 서버 내부의 구현은 프록시, 게이트웨이, 로드 밸런서 등을 둘 수 있습니다.
+  - 이를 통해 보안, 확장성, 로드 분산 등을 구현할 수 있습니다.
+6. 코드 온디맨드(Code on Demand) (선택 사항) :  
   서버가 클라이언트에 실행 가능한 코드를 전송할 수 있으나, 일반적으로는 사용하지 않습니다.
 
 ---
@@ -35,7 +43,7 @@ RESTful API를 설계할 때 지켜야 하는 핵심 제약 조건은 다음과 
 
 ### **1. ⭐ 자원 중심 설계 (Resource-Oriented Design) ⭐**
 
-- URI 설계 : 자원을 식별하는 URI는 명사 형태로 구성합니다.
+- URI 설계 : 자원을 식별하는 URI는 명사 형태로 구성합니다. 자원의 컬렉션과 개별 항목을 구분하여 설계합니다.
   - 예) `/users` (전체 사용자), `/users/{userId}` (특정 사용자)
 - CRUD 작업: HTTP 메서드를 사용해 자원에 대한 작업을 표현합니다.
   - `GET    /users` : 사용자 조회
@@ -85,19 +93,53 @@ RESTful API를 설계할 때 지켜야 하는 핵심 제약 조건은 다음과 
 ## 🔍 RESTful API 설계 예시
 
 예시 : 사용자 관리 API
-- `GET /v1/users` : 전체 사용자 조회
-  - 응답 : `[{"id":1, "name":"Alice", "email":"alice@example.com"}, ...]`
-- `GET /v1/users/{userId}` : 특정 사용자 조회
-  - 응답 : `{"id":1, "name":"Alice", "email":"alice@example.com"}`
-- `POST /v1/users` : 사용자 생성
-  - 요청 본문 : `{"name":"Bob", "email":"bob@example.com"}`
-  - 응답 : 201 Created와 함께 새 자원의 URI 반환
-- `PUT /v1/users/{userId}` : 전체 업데이트
-- `PATCH /v1/users/{userId}` : 부분 업데이트
-- `DELETE /v1/users/{userId}` : 사용자 삭제
-  - 응답 : 204 No Content
+
+```http
+GET /v1/users
+  - 설명 : 모든 사용자 목록 조회
+  - 응답 예시: 
+    [
+      { "id": 1, "name": "Alice", "email": "alice@example.com" },
+      { "id": 2, "name": "Bob", "email": "bob@example.com" }
+    ]
+
+GET /v1/users/1
+  - 설명: ID가 1인 사용자 조회
+  - 응답 예시: 
+    { "id": 1, "name": "Alice", "email": "alice@example.com" }
+
+POST /v1/users
+  - 설명: 새로운 사용자 생성
+  - 요청 예시:
+    {
+      "name": "Charlie",
+      "email": "charlie@example.com"
+    }
+  - 응답: 201 Created, Location 헤더에 새 리소스 URI 포함
+
+PUT /v1/users/1
+  - 설명: ID가 1인 사용자의 전체 정보 업데이트
+  - 요청 예시:
+    {
+      "name": "Alice Smith",
+      "email": "alice.smith@example.com"
+    }
+  - 응답: 200 OK
+
+DELETE /v1/users/1
+  - 설명: ID가 1인 사용자 삭제
+  - 응답: 204 No Content
+```
 
 ---
+
+## ⚡ RESTful API 설계의 핵심 포인트
+
+- 자원 중심: 모든 API는 자원(데이터) 관점에서 설계
+- HTTP 메서드 활용: GET, POST, PUT/PATCH, DELETE로 CRUD 구현
+- 상태 코드 및 에러 처리: 클라이언트와 서버 간의 명확한 의사소통
+- 보안과 버전 관리: HTTPS, 인증, 버전 관리로 신뢰성 확보
+- 문서화: Swagger 같은 도구를 활용해 명확한 API 문서 제공
 
 ## ⚡ RESTful API 설계 시 유의사항
 
@@ -111,5 +153,5 @@ RESTful API를 설계할 때 지켜야 하는 핵심 제약 조건은 다음과 
 
 ## 💡 결론
 
-RESTful API는 자원을 중심으로 설계된 웹 서비스로, HTTP의 기본 원칙을 활용해 확장성과 유지보수성이 뛰어난 시스템을 만들 수 있습니다.
+RESTful API는 자원 중심의 인터페이스로 설계함으로써, HTTP의 기본 원칙을 활용해 **확장성과 유지보수성, 협업 효율성이** 뛰어난 시스템을 만들 수 있습니다.
 올바른 URI 설계, HTTP 메서드의 적절한 활용, 명확한 에러 처리 및 보안 강화를 통해 API의 일관성과 신뢰성을 높일 수 있으며, Swagger 같은 도구를 활용해 문서화를 철저히 하는 것이 성공적인 RESTful API 설계의 핵심입니다.
